@@ -13,24 +13,45 @@ GOOGLE_APPS_SCRIPT_URL = (
     "exec"
 )
 
+API_KEY = "JJSS-LICENSING-TEST-2026"
 ADMIN_KEY = "JJSS-ADMIN"
 
 
 def call_api(action, phone=""):
     try:
-        response = requests.get(
-            GOOGLE_APPS_SCRIPT_URL,
-            params={
-                "action": action,
-                "phone": phone
-            },
-            timeout=15
-        )
+
+        # WRITE OPERATIONS → POST
+        if action in ("request", "approve", "reject"):
+
+            response = requests.post(
+                GOOGLE_APPS_SCRIPT_URL,
+                json={
+                    "key": API_KEY,
+                    "action": action,
+                    "phone": phone
+                },
+                timeout=15
+            )
+
+        # READ OPERATIONS → GET
+        else:
+
+            response = requests.get(
+                GOOGLE_APPS_SCRIPT_URL,
+                params={
+                    "key": API_KEY,
+                    "action": action,
+                    "phone": phone
+                },
+                timeout=15
+            )
 
         response.raise_for_status()
+
         return response.json()
 
     except Exception as e:
+
         return {
             "ok": False,
             "error": str(e)
@@ -39,9 +60,10 @@ def call_api(action, phone=""):
 
 st.title("JJSS LOGIN")
 
-# ------------------------------------------------------------
+
+# ============================================================
 # JJSS ADMIN
-# ------------------------------------------------------------
+# ============================================================
 
 if st.query_params.get("admin") == ADMIN_KEY:
 
@@ -50,47 +72,76 @@ if st.query_params.get("admin") == ADMIN_KEY:
     result = call_api("pending")
 
     if not result.get("ok"):
+
         st.error("Unable to connect to JJSS License Database.")
         st.stop()
 
     pending = result.get("pending", [])
 
     if not pending:
+
         st.info("No pending login requests.")
+
     else:
+
         for phone in pending:
 
             st.write(f"**{phone}**")
 
             c1, c2 = st.columns(2)
 
-            if c1.button("ACCEPT", key=f"accept_{phone}"):
-                result = call_api("approve", phone)
+            if c1.button(
+                "ACCEPT",
+                key=f"accept_{phone}"
+            ):
+
+                result = call_api(
+                    "approve",
+                    phone
+                )
 
                 if result.get("ok"):
-                    st.rerun()
-                else:
-                    st.error("Unable to approve request.")
 
-            if c2.button("REJECT", key=f"reject_{phone}"):
-                result = call_api("reject", phone)
+                    st.rerun()
+
+                else:
+
+                    st.error(
+                        "Unable to approve request."
+                    )
+
+            if c2.button(
+                "REJECT",
+                key=f"reject_{phone}"
+            ):
+
+                result = call_api(
+                    "reject",
+                    phone
+                )
 
                 if result.get("ok"):
+
                     st.rerun()
+
                 else:
-                    st.error("Unable to reject request.")
+
+                    st.error(
+                        "Unable to reject request."
+                    )
 
     st.stop()
 
 
-# ------------------------------------------------------------
+# ============================================================
 # JJSS USER LOGIN
-# ------------------------------------------------------------
+# ============================================================
 
 phone = st.text_input(
     "Phone Number",
     key="phone"
 )
+
 
 if st.button(
     "REQUEST ACCESS",
@@ -100,7 +151,10 @@ if st.button(
     phone = phone.strip()
 
     if not phone:
-        st.error("Enter your phone number.")
+
+        st.error(
+            "Enter your phone number."
+        )
 
     else:
 
@@ -110,15 +164,25 @@ if st.button(
         )
 
         if result.get("ok"):
-            st.success("ACCESS REQUEST SENT")
-            st.info("Waiting for JJSS Admin approval.")
+
+            st.success(
+                "ACCESS REQUEST SENT"
+            )
+
+            st.info(
+                "Waiting for JJSS Admin approval."
+            )
+
         else:
-            st.error("Unable to send access request.")
+
+            st.error(
+                "Unable to send access request."
+            )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # CHECK CURRENT STATUS
-# ------------------------------------------------------------
+# ============================================================
 
 if phone:
 
@@ -138,16 +202,26 @@ if phone:
 
         if status == "approved":
 
-            st.success("LOGIN APPROVED")
-            st.write("JJSS access is approved.")
+            st.success(
+                "LOGIN APPROVED"
+            )
+
+            st.write(
+                "JJSS access is approved."
+            )
 
         elif status == "rejected":
 
-            st.error("ACCESS DENIED")
+            st.error(
+                "ACCESS DENIED"
+            )
 
         elif status == "pending":
 
-            st.info("WAITING FOR ADMIN APPROVAL")
+            st.info(
+                "WAITING FOR ADMIN APPROVAL"
+            )
+
             st.caption(
                 "Refresh this page after the admin accepts."
             )
