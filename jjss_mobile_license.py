@@ -17,10 +17,42 @@ API_KEY = "JJSS-LICENSING-TEST-2026"
 ADMIN_KEY = "JJSS-ADMIN"
 
 
+# ============================================================
+# BROKER LIST
+# ============================================================
+
+BROKERS = [
+    "Zerodha",
+    "Upstox",
+    "Angel One",
+    "Choice Broking",
+    "Dhan",
+    "Groww",
+    "FYERS",
+    "5paisa",
+    "ICICI Direct",
+    "Kotak Neo",
+    "Motilal Oswal",
+    "Nuvama",
+    "Shoonya / Finvasia",
+    "Alice Blue",
+    "IIFL Securities",
+    "Axis Direct",
+    "Anand Rathi",
+    "Geojit",
+    "Mastertrust",
+    "Flattrade",
+    "Indiabulls"
+]
+
+
+# ============================================================
+# API FUNCTION
+# ============================================================
+
 def call_api(action, phone=""):
     try:
 
-        # WRITE OPERATIONS → POST
         if action in ("request", "approve", "reject"):
 
             response = requests.post(
@@ -33,7 +65,6 @@ def call_api(action, phone=""):
                 timeout=15
             )
 
-        # READ OPERATIONS → GET
         else:
 
             response = requests.get(
@@ -57,6 +88,10 @@ def call_api(action, phone=""):
             "error": str(e)
         }
 
+
+# ============================================================
+# TITLE
+# ============================================================
 
 st.title("JJSS LOGIN")
 
@@ -209,6 +244,72 @@ if phone:
             st.write(
                 "JJSS access is approved."
             )
+
+            # ==================================================
+            # DEMAT ACCOUNT
+            # ==================================================
+
+            st.header("DEMAT ACCOUNT")
+
+            selected_broker = st.selectbox(
+                "Select Broker",
+                BROKERS,
+                key="selected_broker"
+            )
+
+            st.write(
+                f"Selected Broker: **{selected_broker}**"
+            )
+
+            client_id = st.text_input(
+                "Client ID / User ID",
+                key="broker_client_id"
+            )
+
+            api_key = st.text_input(
+                "API Key",
+                key="broker_api_key",
+                type="password"
+            )
+
+            api_secret = st.text_input(
+                "API Secret",
+                key="broker_api_secret",
+                type="password"
+            )
+
+            if st.button(
+                "CONNECT DEMAT ACCOUNT",
+                use_container_width=True
+            ):
+
+                if not client_id:
+
+                    st.error(
+                        "Enter Client ID / User ID."
+                    )
+
+                elif not api_key:
+
+                    st.error(
+                        "Enter API Key."
+                    )
+
+                elif not api_secret:
+
+                    st.error(
+                        "Enter API Secret."
+                    )
+
+                else:
+
+                    st.success(
+                        f"{selected_broker} selected."
+                    )
+
+                    st.info(
+                        "Broker connection setup ready."
+                    )
 
         elif status == "rejected":
 
