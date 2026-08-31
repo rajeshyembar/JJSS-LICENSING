@@ -16,43 +16,25 @@ GOOGLE_APPS_SCRIPT_URL = (
 API_KEY = "JJSS-LICENSING-TEST-2026"
 ADMIN_KEY = "JJSS-ADMIN"
 
-
-# ============================================================
-# BROKER LIST
-# ============================================================
-
 BROKERS = [
     "Zerodha",
     "Upstox",
     "Angel One",
-    "Choice Broking",
+    "Choice",
+    "Indiabulls",
     "Dhan",
     "Groww",
-    "FYERS",
-    "5paisa",
     "ICICI Direct",
-    "Kotak Neo",
+    "5paisa",
+    "Kotak Securities",
     "Motilal Oswal",
-    "Nuvama",
-    "Shoonya / Finvasia",
-    "Alice Blue",
-    "IIFL Securities",
-    "Axis Direct",
-    "Anand Rathi",
-    "Geojit",
-    "Mastertrust",
-    "Flattrade",
-    "Indiabulls"
+    "HDFC Securities",
+    "Other"
 ]
 
 
-# ============================================================
-# API FUNCTION
-# ============================================================
-
 def call_api(action, phone=""):
     try:
-
         if action in ("request", "approve", "reject"):
 
             response = requests.post(
@@ -89,15 +71,11 @@ def call_api(action, phone=""):
         }
 
 
-# ============================================================
-# TITLE
-# ============================================================
-
 st.title("JJSS LOGIN")
 
 
 # ============================================================
-# JJSS ADMIN
+# ADMIN
 # ============================================================
 
 if st.query_params.get("admin") == ADMIN_KEY:
@@ -107,7 +85,6 @@ if st.query_params.get("admin") == ADMIN_KEY:
     result = call_api("pending")
 
     if not result.get("ok"):
-
         st.error("Unable to connect to JJSS License Database.")
         st.stop()
 
@@ -136,13 +113,13 @@ if st.query_params.get("admin") == ADMIN_KEY:
                 )
 
                 if result.get("ok"):
-
                     st.rerun()
-
                 else:
-
                     st.error(
-                        "Unable to approve request."
+                        result.get(
+                            "error",
+                            "Unable to approve request."
+                        )
                     )
 
             if c2.button(
@@ -156,20 +133,20 @@ if st.query_params.get("admin") == ADMIN_KEY:
                 )
 
                 if result.get("ok"):
-
                     st.rerun()
-
                 else:
-
                     st.error(
-                        "Unable to reject request."
+                        result.get(
+                            "error",
+                            "Unable to reject request."
+                        )
                     )
 
     st.stop()
 
 
 # ============================================================
-# JJSS USER LOGIN
+# USER LOGIN
 # ============================================================
 
 phone = st.text_input(
@@ -187,9 +164,7 @@ if st.button(
 
     if not phone:
 
-        st.error(
-            "Enter your phone number."
-        )
+        st.error("Enter your phone number.")
 
     else:
 
@@ -211,12 +186,15 @@ if st.button(
         else:
 
             st.error(
-                "Unable to send access request."
+                result.get(
+                    "error",
+                    "Unable to send access request."
+                )
             )
 
 
 # ============================================================
-# CHECK CURRENT STATUS
+# CHECK LOGIN STATUS
 # ============================================================
 
 if phone:
@@ -245,37 +223,23 @@ if phone:
                 "JJSS access is approved."
             )
 
+            st.divider()
+
             # ==================================================
             # DEMAT ACCOUNT
             # ==================================================
 
             st.header("DEMAT ACCOUNT")
 
-            selected_broker = st.selectbox(
+            broker = st.selectbox(
                 "Select Broker",
                 BROKERS,
-                key="selected_broker"
-            )
-
-            st.write(
-                f"Selected Broker: **{selected_broker}**"
+                key="broker"
             )
 
             client_id = st.text_input(
                 "Client ID / User ID",
-                key="broker_client_id"
-            )
-
-            api_key = st.text_input(
-                "API Key",
-                key="broker_api_key",
-                type="password"
-            )
-
-            api_secret = st.text_input(
-                "API Secret",
-                key="broker_api_secret",
-                type="password"
+                key="client_id"
             )
 
             if st.button(
@@ -283,33 +247,36 @@ if phone:
                 use_container_width=True
             ):
 
-                if not client_id:
+                if not client_id.strip():
 
                     st.error(
-                        "Enter Client ID / User ID."
-                    )
-
-                elif not api_key:
-
-                    st.error(
-                        "Enter API Key."
-                    )
-
-                elif not api_secret:
-
-                    st.error(
-                        "Enter API Secret."
+                        "Enter your Client ID / User ID."
                     )
 
                 else:
 
+                    st.session_state.demat_connected = True
+
                     st.success(
-                        f"{selected_broker} selected."
+                        f"{broker} account selected."
                     )
 
-                    st.info(
-                        "Broker connection setup ready."
-                    )
+            if st.session_state.get(
+                "demat_connected",
+                False
+            ):
+
+                st.info(
+                    f"Broker: {broker}"
+                )
+
+                st.info(
+                    f"Client ID: {client_id}"
+                )
+
+                st.success(
+                    "DEMAT ACCOUNT READY"
+                )
 
         elif status == "rejected":
 
